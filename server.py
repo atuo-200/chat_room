@@ -92,7 +92,8 @@ class CommandHandler:
 
     def handle(self, session, line):
 	#解码
-        line = line.decode()
+        line = line.decode("utf-8")
+        print(line)
         #判断去掉空格后是否还有数据
         if not line.strip():
             return
@@ -187,32 +188,42 @@ class ChatRoom(Room):
     def add(self, session):
         # 广播新用户进入
         session.push('登录成功'.encode('utf-8'))
-        self.broadcast((session.name + ' 进入房间\n').encode("utf-8"))
+        #self.broadcast((session.name + ' 进入房间\n').encode("utf-8"))
 	#向服务器的用户字典添加与会话的用户名相对应的会话
         self.server.users[session.name] = session
         Room.add(self, session)
+        #----------------------添加-------------------
+        users = ";".join(self.ls_users())
+        self.broadcast((users+" 用户列表\n").encode("utf-8"))
 
     def remove(self, session):
         # 广播用户离开
         Room.remove(self, session)
-        self.broadcast((session.name + ' 离开房间\n').encode("utf-8"))
+        users = ";".join(self.ls_users())
+        self.broadcast((users+" 用户列表\n").encode("utf-8"))
+        #self.broadcast((session.name + ' 离开房间\n').encode("utf-8"))
 
     def do_say(self, session, line):
         # 客户端发送消息
         print(line)
         self.broadcast(('time:'+time.strftime('%H:%M:%S',time.localtime(time.time()))+ '\n'+session.name + ': ' + line + '\n').encode("utf-8"))
 
-    def do_look(self, session, line):
+    def ls_users(self):
         # 查看在线用户
-        session.push('在线用户:\n'.encode('utf-8'))
+        # session.push('在线用户:\n'.encode('utf-8'))
+        # for other in self.sessions:
+        #     session.push((other.name + '\n').encode("utf-8"))
+        #-------------------修改------------------
+        users = []
         for other in self.sessions:
-            session.push((other.name + '\n').encode("utf-8"))
+            users.append(other.name)
+        return users       
 
 if __name__ == '__main__':
 
     s = ChatServer(PORT)
     try:
-        print("chat serve run at '127.0.0.1:{0}'".format(PORT))
+        print("chat serve run at '47.100.186.96:{0}'".format(PORT))
 	#开启循环监听网络事件
         asyncore.loop()
     except KeyboardInterrupt:
